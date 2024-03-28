@@ -1,6 +1,8 @@
+const fs = require('fs');
 const _ = require('lodash');
 const cheerio = require('cheerio');
 const sanitizeHtml = require('sanitize-html');
+const stream = require('stream');
 
 const RECIPE_PAGES_NUM = 918;
 
@@ -26,11 +28,14 @@ async function parseRecipePage(recipePageURL) {
 
     const $ = cheerio.load(html);
 
-    const imagePath = $('.slider-for img').attr('src');
     const videoEmbedURL = $('#tutorial .embed-responsive-item').attr('src');
+    const imagePath = $('.slider-for img').attr('src');
+    const imageURL = imagePath ? `https://cocinerosargentinos.com${imagePath.replace('500x500', 'original')}` : null;
 
     const recipe = {
-        imageURL: imagePath ? `https://cocinerosargentinos.com${imagePath.replace('500x500', 'original')}` : null, 
+        sourceURL: recipePageURL,
+        imageURL: imageURL ? imageURL : null, 
+        imageFile: imageURL ? imageURL.split('/').pop() : null, 
         videoURL: videoEmbedURL ? videoEmbedURL.replace(/\?.*/, '').replace('embed/', 'watch?v=') : null,
         category: $('.brand').text().trim(),
         title: $('.product-name').text().trim(),
@@ -55,7 +60,21 @@ async function parseRecipeListPage(recipeListPageURL){
     }).toArray()
 }
 
+async function downloadImageTo(imageURL, downloadDir){
+    const fileName = `${downloadDir}/${imageURL.split("/").pop()}`;
+    const response = await fetch(imageURL);
+    process.stderr.write(`i ${imageURL}\n`);
+    if (response.ok && response.body) {
+        let writer = fs.createWriteStream(fileName);
+        stream.Readable.fromWeb(response.body).pipe(writer);
+    }
+}
+
 (async () => {
+    let ts = Date.now();
+    let exportDir = `exports/${ts}`;
+    let exportImagesDir = `exports/${ts}/images`;
+
     let recipeListPages = [];
     let recipePages = [];
     let recipes = [];
@@ -68,10 +87,20 @@ async function parseRecipeListPage(recipeListPageURL){
         recipePages.push(await Promise.all(chunk.map(u => parseRecipeListPage(u) )))
     }
 
-    for(let chunk of _.chunk(_.flattenDeep(recipePages), 100)){
+    recipePages = _.flattenDeep(recipePages)
+
+    for(let chunk of _.chunk(recipePages, 100)){
         recipes.push((await Promise.all(chunk.map(u => parseRecipePage(u)).filter(e => e))))
     }
+    
+    recipes = _.flatten(recipes)
 
-    process.stdout.write(JSON.stringify(_.flatten(recipes)));
+    fs.mkdirSync(exportDir)
+    fs.writeFileSync(`${exportDir}/recipes.json`, JSON.stringify(recipes))
+    
+    fs.mkdirSync(exportImagesDir)
+    for(let chunk of _(recipes).map('imageURL').compact().chunk(20).value()){
+        await Promise.all(chunk.map(u => downloadImageTo(u, exportImagesDir)))
+    }
+
 })()
-
