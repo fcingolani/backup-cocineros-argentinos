@@ -9,7 +9,7 @@ const RECIPE_PAGES_NUM = 918;
 function clean(str){
     str = str.replace("\s", "").replace("\r", "");
     str = sanitizeHtml(str, {
-        allowedTags: [ 'br', 'b', 'i', 'em', 'strong', 'li' ],
+        allowedTags: ['p', 'br', 'b', 'i', 'em', 'strong', 'li' ],
     });
     
     return str;

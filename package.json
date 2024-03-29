@@ -1,7 +1,9 @@
 {
   "dependencies": {
     "cheerio": "^1.0.0-rc.12",
+    "ejs": "^3.1.9",
     "lodash": "^4.17.21",
+    "rimraf": "^5.0.5",
     "sanitize-html": "^2.13.0"
   }
 }
