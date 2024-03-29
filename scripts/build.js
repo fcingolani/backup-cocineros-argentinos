@@ -24,6 +24,8 @@ const indexTemplate = ejs.compile(`
     <div class="container" style="padding-top: 1rem">
         <h1>Backup de recetas de Cocineros Argentinos</h1>
 
+        <p>Este es un backup <i>rápido y furioso</i> de las recetas disponibles en el sitio de Cocineros Argentinos. Podés ver el código fuente del scraper y el generador de este sitio en <a href="https://github.com/fcingolani/backup-cocineros-argentinos">Github</a>. También podés <a href="https://github.com/fcingolani/backup-cocineros-argentinos/tree/main/data/">bajarte el JSON</a> con todas las recetas.</p>
+
         <hr />
         <% Object.keys(recipes).sort().forEach(function (category){ %>
             <details>
@@ -66,7 +68,7 @@ const recipeTemplate = ejs.compile(`
 
         <% if(recipe.videoURL){ %>
             <p>
-                <iframe style="width: 100%; height: 50%;" src="<%= recipe.videoURL.replace("watch?v=", "embed/") %>"></iframe>
+                <iframe style="width: 100%; height: 20rem; " src="<%= recipe.videoURL.replace("watch?v=", "embed/") %>"></iframe>
             </p>
         <% } %>
 
