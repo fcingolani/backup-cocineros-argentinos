@@ -6,7 +6,7 @@ const ejs = require('ejs');
 const exportDir = process.argv[2];
 const recipes = JSON.parse(fs.readFileSync(`./${exportDir}/recipes.json`));
 
-const publicDir = './public';
+const publicDir = './docs';
 
 const indexTemplate = ejs.compile(`
 <!DOCTYPE html><html lang="es">
